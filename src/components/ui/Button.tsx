@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn';
 import { Slot } from '@radix-ui/react-slot';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
+  'cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
@@ -14,6 +14,8 @@ const buttonVariants = cva(
           'border border-primary-500 bg-white text-primary-500 hover:bg-primary-50 active:bg-primary-100',
         tertiary:
           'bg-neutral-100 text-primary-500 hover:bg-neutral-200 active:bg-neutral-300',
+        danger:
+          'bg-ait-danger-600 text-white hover:bg-ait-danger-100 hover:text-ait-danger-600 active:bg-ait-danger-600',
         text: 'bg-transparent text-neutral-500 hover:bg-neutral-100 active:bg-neutral-200',
         link: 'bg-transparent text-primary-500 hover:underline underline-offset-4',
         'destructive-primary':

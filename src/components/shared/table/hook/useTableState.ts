@@ -1,28 +1,34 @@
-import { useState } from 'react';
-import type {
-  ColumnFiltersState,
-  PaginationState,
-  SortingState,
-  VisibilityState,
-} from '@tanstack/react-table';
+import { useMemo } from 'react';
+import type { DataTableProps } from '../types/types';
+import type { PaginationState, SortingState } from '@tanstack/react-table';
 
-export function useTableState(initialPage = 0) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [filter, setFilter] = useState<ColumnFiltersState>([]);
-  const [visibility, setVisibility] = useState<VisibilityState>({});
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: initialPage,
-  });
+export function useTableState<TData>({
+  filter,
+  total,
+}: Pick<DataTableProps<TData>, 'filter' | 'total'>) {
+  const sorting: SortingState = useMemo(() => {
+    if (!filter.sortBy) return [];
+    return [
+      {
+        id: String(filter.sortBy),
+        desc: filter.order === 'desc',
+      },
+    ];
+  }, [filter.sortBy, filter.order]);
+
+  const limit = filter.limit ?? 10;
+  const skip = filter.skip ?? 0;
+
+  const pagination: PaginationState = {
+    pageIndex: Math.floor(skip / limit),
+    pageSize: limit,
+  };
+
+  const pageCount = Math.ceil(total / limit);
 
   return {
     sorting,
-    setSorting,
-    filter,
-    setFilter,
-    visibility,
-    setVisibility,
     pagination,
-    setPagination,
+    pageCount,
   };
 }

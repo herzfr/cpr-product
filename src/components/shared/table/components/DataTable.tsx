@@ -1,85 +1,37 @@
-import {
-  flexRender,
-  type Header,
-  type Row,
-  type Table,
-} from '@tanstack/react-table';
+import { flexRender, type Header, type Table } from '@tanstack/react-table';
 import { SortIndicator } from '../helpers/sort';
 import type { Product } from '@/features/product/types';
 import { currencyPipe, getStockPriority, toTitleCase } from '@/utils/helpers';
-import { Edit, Eye, Trash2 } from 'lucide-react';
+import type { DataTableProps } from '../types/types';
 
-interface TableProps<TData> {
+interface TableProps<TData> extends Pick<
+  DataTableProps<TData>,
+  'onRowClick' | 'actions' | 'onRowActionChange' | 'onFilterChange' | 'filter'
+> {
   table: Table<TData>;
-  onRowClick?: (row: Row<TData>) => void;
-  onType?: (row: Row<TData>, type: 'view' | 'delete' | 'edit') => void;
-  onSortChange?: (sortBy: string, order: 'asc' | 'desc' | 'none') => void;
 }
 
 export function Table<TData>({
   table,
+  filter,
+  actions,
   onRowClick,
-  onType,
-  onSortChange,
+  onFilterChange,
+  onRowActionChange,
 }: TableProps<TData>) {
-  const actionButton = (key: string, row: Row<TData>) => {
-    switch (key) {
-      case 'view':
-        return (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              onType?.(row, 'view');
-            }}
-            title="View log"
-            className="p-2 text-ait-neutral-500 hover:text-ait-primary-600 hover:bg-ait-primary-50 rounded-lg transition-all duration-200 hover:shadow-sm"
-          >
-            <Eye className="w-4 h-4" />
-          </button>
-        );
-      case 'edit':
-        return (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              //   console.log(row, 'edit');
-              onType?.(row, 'edit');
-            }}
-            title="Edit log"
-            className="p-2 text-ait-neutral-500 hover:text-ait-primary-600 hover:bg-ait-primary-50 rounded-lg transition-all duration-200 hover:shadow-sm"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-        );
-      case 'delete':
-        return (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              onType?.(row, 'delete');
-            }}
-            title="Delete log"
-            className="p-2 text-ait-neutral-500 hover:text-ait-primary-600 hover:bg-ait-primary-50 rounded-lg transition-all duration-200 hover:shadow-sm"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        );
-      default:
-        break;
-    }
-  };
-
   const sortingChange = (header: Header<TData, unknown>) => {
     const currentSort = header.column.getIsSorted();
+    const columnId = header.column.id as Extract<keyof TData, string>;
+
     if (currentSort === false) {
       table.setSorting([{ id: header.column.id, desc: false }]);
-      onSortChange?.(header.column.id, 'asc');
+      onFilterChange({ ...filter, order: 'asc', sortBy: columnId });
     } else if (currentSort === 'asc') {
       table.setSorting([{ id: header.column.id, desc: true }]);
-      onSortChange?.(header.column.id, 'desc');
+      onFilterChange({ ...filter, order: 'desc', sortBy: columnId });
     } else {
       table.setSorting([]);
-      onSortChange?.(header.column.id, 'none');
+      onFilterChange({ ...filter, order: undefined, sortBy: undefined });
     }
   };
 
@@ -168,9 +120,23 @@ export function Table<TData>({
                       </span>
                     ) : cell.column.id === 'action' ? (
                       <div className="flex">
-                        {actionButton('view', row)}
-                        {actionButton('edit', row)}
-                        {actionButton('delete', row)}
+                        {actions &&
+                          actions.map((action, idx) => (
+                            <button
+                              key={idx}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                onRowActionChange?.({
+                                  type: action.id,
+                                  value: row.original,
+                                });
+                              }}
+                              title="Delete"
+                              className="p-2 text-ait-neutral-500 hover:text-ait-primary-600 hover:bg-ait-primary-50 rounded-lg transition-all duration-200 hover:shadow-sm"
+                            >
+                              {action.icon}
+                            </button>
+                          ))}
                       </div>
                     ) : cell.column.id === 'category' ? (
                       <div className="flex">

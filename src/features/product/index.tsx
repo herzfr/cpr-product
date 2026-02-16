@@ -1,10 +1,14 @@
 import { lazy, type ElementType } from 'react';
 import { Route, Routes } from 'react-router-dom';
+import { useToastStore } from './store/toast/toast.store';
+import { ToastContainer } from '@/components/ui/Toast';
 
 const Catalog = lazy(() => import('@/features/product/pages/Catalog'));
 const Detail = lazy(() => import('@/features/product/pages/Detail'));
 
 export default function ProductPage() {
+  const toast = useToastStore((state) => state.toasts);
+
   type AppRoute =
     | { index: true; Component: ElementType }
     | { path: string; Component: ElementType };
@@ -27,6 +31,7 @@ export default function ProductPage() {
           />
         ))}
       </Routes>
+      <ToastContainer toasts={toast} />
     </div>
   );
 }

@@ -1,16 +1,26 @@
 import { currencyPipe, getStockPriority, toTitleCase } from '@/utils/helpers';
 import { useDetail } from '../hook/product/useDetail';
 import { ArrowLeft, Edit, Star } from 'lucide-react';
+import { DialogCustom } from '@/components/shared/dialog/Custom';
+import { ProductForm } from '../components/Form';
+import { Button } from '@/components/ui/Button';
 
 export default function Detail() {
-  const { product, displayImg, setDisplayImg, back } = useDetail();
+  const {
+    product,
+    displayImg,
+    productStore,
+    setDisplayImg,
+    updateProduct,
+    back,
+  } = useDetail();
 
   if (!product) return null;
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-ait-neutral-50 rounded-lg">
+      <div className="bg-ait-neutral-50 rounded-lg flex flex-row justify-between  items-center">
         <h3 className="text-ait-h3-semibold text-ait-neutral-900">
           Detail Product
         </h3>
@@ -196,30 +206,42 @@ export default function Detail() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-ait-h3-bold text-ait-primary-500">
+                  <span className="text-ait-h3-bold text-ait-primary-500 ">
                     {currencyPipe(product.price, 'en-US', 'USD')}
                   </span>
-                  <button className="flex gap-2 bg-ait-primary-500 text-ait-white px-6 py-2 rounded-lg text-ait-body-md-bold hover:bg-ait-primary-400 transition-colors">
+
+                  <Button
+                    disabled={productStore.dialog.waiting}
+                    type="button"
+                    variant="primary"
+                    size="md"
+                    className="min-w-28"
+                    isIconOnly
+                    aria-label="Confirm"
+                    onClick={updateProduct}
+                  >
                     <Edit />
                     Update
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {productStore.dialog.type === 'custom' && (
+        <DialogCustom
+          title={productStore.dialog.title}
+          open={productStore.dialog.open}
+          isLoading={productStore.dialog.waiting}
+          btnConfirmText="Submit"
+          component={<ProductForm />}
+          onClose={() => {
+            productStore.dispatch({ type: 'CLOSE_DIALOG' });
+          }}
+        />
+      )}
     </div>
   );
-
-  // return (
-  //   <div>
-  //     <h1>Product Detail</h1>
-  //     {product &&
-  //     <div>
-
-  //     </div>
-  //     }
-  //   </div>
-  // );
 }

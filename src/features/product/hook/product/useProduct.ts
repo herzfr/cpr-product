@@ -1,125 +1,192 @@
-import { useDebounce } from '@/hooks/useDebounce';
-import { useEffect, useState } from 'react';
-import type { Product } from '../../types';
-import type { Filter } from '@/types/general';
-import { useProductList } from './useFetchProduct';
 import type { ColumnDef, Row } from '@tanstack/react-table';
-import { useCategory } from '../category/useCategory';
-import { CategoryStore } from '../../store/category.store';
-import { useNavigate } from 'react-router-dom';
-import { useProductForm } from './useProductForm';
+import { useProductStore } from '../../store/product/product.store';
+import { useCategoryList, useProductList } from './useFetchProduct';
+import type { Product } from '../../types';
+import { columnsProductTable } from '@/constants/table';
+import { useRef } from 'react';
+import type { Filter } from '@/types/general';
+import type {
+  RowActionEvent,
+  ToolbarActionEvent,
+} from '@/components/shared/table/types/types';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useProductMutation } from '../useProductMutation';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useToastStore } from '../../store/toast/toast.store';
 
 export const useProduct = () => {
-  const [search, setSearch] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
-  const { category: chooseCategory, selectCategory: setChooseCategory } =
-    CategoryStore();
-  const debouncedSearch = useDebounce(search, 500);
-  const [sortBy, setSortBy] = useState<keyof Product | undefined>(undefined);
-  const [filter, setFilter] = useState<Filter<Product>>({
-    limit: 10,
-    skip: 0,
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialized = useRef(false);
+  const productStore = useProductStore();
+  const debouncedSearch = useDebounce(productStore.filter.search, 600);
+  const debouncedFilter = {
+    ...productStore.filter,
     search: debouncedSearch,
-    order: undefined,
-    sortBy: sortBy,
-  });
-  const { products, isLoading, error, refetch } = useProductList(
-    filter,
-    chooseCategory,
-  );
-  const { categories } = useCategory();
-  const { setProduct, setEditFormValues } = useProductForm();
-  const columns: ColumnDef<Product>[] = [
-    { header: 'Thumbnail', accessorKey: 'thumbnail', id: 'thumbnail' },
-    { header: 'Title', accessorKey: 'title', id: 'title' },
-    { header: 'Brand', accessorKey: 'brand', id: 'brand' },
-    { header: 'Category', accessorKey: 'category', id: 'category' },
-    { header: 'Price', accessorKey: 'price', id: 'price' },
-    { header: 'Stock', accessorKey: 'stock', id: 'stock' },
-    { header: 'Actions', accessorKey: 'action', id: 'action' },
-  ];
+  };
+  const productList = useProductList(debouncedFilter, productStore.category);
+  const categoryList = useCategoryList();
+  const toast = useToastStore();
+  const columns: ColumnDef<Product>[] = columnsProductTable;
+  const { mutateAsync } = useProductMutation(productStore.filter);
   const navigate = useNavigate();
+  const isKeyOfProduct = (key: string): key is keyof Product => {
+    return ['title', 'brand', 'category', 'price', 'stock'].includes(key);
+  };
 
-  useEffect(() => {
-    if (debouncedSearch !== filter.search) {
-      setFilter((prevFilter) => ({
-        ...prevFilter,
-        search: debouncedSearch, // Use the debounced value for search
-      }));
+  if (!initialized.current) {
+    const limit = Number(searchParams.get('limit')) || 10;
+    const skip = Number(searchParams.get('skip')) || 0;
+    const search = searchParams.get('q') || '';
+    const order = searchParams.get('order') as 'asc' | 'desc' | undefined;
+    const rawSortBy = searchParams.get('sortBy');
+    let sortBy: keyof Product | undefined;
+    if (rawSortBy && isKeyOfProduct(rawSortBy)) {
+      sortBy = rawSortBy;
     }
-  }, [debouncedSearch]);
+    productStore.dispatch({
+      type: 'SET_FILTER',
+      payload: { limit, skip, search, order, sortBy },
+    });
+    initialized.current = true;
+  }
 
-  useEffect(() => {
-    refetch();
-  }, [filter, chooseCategory]);
+  const syncUrl = (filter: typeof productStore.filter) => {
+    const isDefault =
+      (filter.skip === 0 || !filter.skip) &&
+      !filter.search?.trim() &&
+      !filter.sortBy &&
+      !filter.order;
 
-  // useEffect(() => {}, [openDialog]);
+    if (isDefault) {
+      setSearchParams({});
+      return;
+    }
 
-  const handleView = (row?: Row<Product>) => {
-    // console.log(row);
-    // const id = Number(row?.id) + 1;
-    // navigate(`/product/detail?id=${id}`);
+    const params: Record<string, string> = {
+      limit: String(filter.limit ?? 10),
+      skip: String(filter.skip ?? 0),
+    };
+
+    if (filter.search?.trim()) {
+      params.search = filter.search.trim();
+    }
+
+    if (filter.sortBy) {
+      params.sortBy = filter.sortBy;
+    }
+
+    if (filter.order) {
+      params.order = filter.order;
+    }
+
+    setSearchParams(params);
   };
 
-  const closeDialog = () => {
-    setOpenDialog(false);
+  const setFilter = (f: Filter<Product>) => {
+    syncUrl(f);
+    productStore.dispatch({ type: 'SET_FILTER', payload: f });
   };
 
-  const handleClickRow = (
-    prod?: Row<Product>,
-    type?: 'view' | 'edit' | 'delete',
-  ) => {
-    switch (type) {
+  const retry = () => productList.refetch();
+
+  const setProduct = (row?: Row<Product> | undefined) => {
+    if (row)
+      productStore.dispatch({
+        type: 'SET_PRODUCT',
+        payload: row?.original ?? null,
+      });
+  };
+
+  const setActionRow = (action: RowActionEvent<Product>) => {
+    switch (action.type) {
       case 'view':
-        const id = Number(prod?.id) + 1;
+        const id = Number(action.value.id) + 1;
         navigate(`/product/detail?id=${id}`);
         break;
       case 'edit':
-        // console.log('edit');
-        setProduct(prod?.original);
-        setEditFormValues();
-        setOpenDialog(true);
+        productStore.dispatch({
+          type: 'UPDATE_PRODUCT',
+          payload: action.value,
+        });
+        break;
+      case 'delete':
+        productStore.dispatch({
+          type: 'DELETE_PRODUCT',
+          payload: action.value,
+        });
         break;
       default:
         break;
     }
   };
 
-  const handleClickSort = (sortBy: string, order: 'asc' | 'desc' | 'none') => {
-    if (isKeyOfProduct(sortBy)) {
-      setSortBy(sortBy);
-      setFilter({
-        ...filter,
-        sortBy: order === 'none' ? undefined : sortBy,
-        order: order === 'none' ? undefined : order,
-      });
+  const setActionToolbar = (action: ToolbarActionEvent) => {
+    console.log(action);
+    switch (action.id) {
+      case 'select-category':
+        if (action.type === 'select') {
+          if (action.value === 'all') {
+            productStore.dispatch({ type: 'RESET_CATEGORY' });
+            return;
+          }
+
+          productStore.dispatch({
+            type: 'SET_CATEGORY',
+            payload: action.value,
+          });
+        }
+
+        break;
+      case 'create-product':
+        productStore.dispatch({
+          type: 'RESET_PRODUCT',
+        });
+        productStore.dispatch({
+          type: 'CREATE_PRODUCT',
+        });
+        break;
+
+      default:
+        break;
     }
   };
 
-  const handleSearch = (q: string) => {
-    setSearch(q);
-  };
+  const confirmationDialog = async () => {
+    productStore.dispatch({
+      type: 'SET_WAITING',
+      payload: true,
+    });
 
-  const isKeyOfProduct = (key: string): key is keyof Product => {
-    return ['title', 'brand', 'category', 'price', 'stock'].includes(key);
+    await mutateAsync(
+      { type: 'delete', data: { id: Number(productStore.product?.id) } },
+      {
+        onSuccess: () => {
+          toast.success('Delete Success', 'Your product has been deleted');
+          productStore.dispatch({ type: 'RESET_FILTER' });
+        },
+        onError: (err) => {
+          console.log(err);
+        },
+      },
+    );
+
+    productStore.dispatch({
+      type: 'CLOSE_DIALOG',
+    });
   };
 
   return {
-    products,
-    categories,
-    isLoading,
-    error,
+    productStore,
+    productList,
+    categoryList,
     columns,
-    chooseCategory,
-    search,
-    filter,
-    openDialog,
-    handleView,
-    handleClickRow,
-    handleClickSort,
-    handleSearch,
-    setSearch,
-    setChooseCategory,
-    closeDialog,
+
+    setFilter,
+    setProduct,
+    setActionRow,
+    setActionToolbar,
+
+    confirmationDialog,
+    retry,
   };
 };
