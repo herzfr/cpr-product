@@ -10,7 +10,8 @@ import {
   deleteProduct,
   updateProduct,
 } from '../service/product.service';
-import type { Filter } from '@/types/general';
+import type { ApiResponse, Filter } from '@/types/general';
+import { generateOptimisticProduct } from '../helpers/product.helper';
 
 export type ProductMutationType = 'create' | 'update' | 'delete';
 export type ProductMutationPayload =
@@ -32,42 +33,61 @@ export const productMutationFn = async (payload: ProductMutationPayload) => {
 };
 
 export const useProductMutation = (params: Filter<Product>) => {
-  // <-- Kita tambah params di sini
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: productMutationFn,
-
-    // 1. SEBELUM server menjawab (onMutate)
     onMutate: async (payload: ProductMutationPayload) => {
-      // Hentikan proses refresh data lain supaya tidak bentrok
       await queryClient.cancelQueries({ queryKey: productKeys.list(params) });
 
-      // Ambil "Foto" data saat ini sebagai cadangan (Backup)
-      const previousProducts = queryClient.getQueryData<Product[]>(
-        productKeys.list(params),
-      );
+      const previousProducts = queryClient.getQueryData<
+        ApiResponse<'products', Product[]>
+      >(productKeys.list(params));
 
-      // LANGSUNG ubah tampilan di layar (Optimistic Update)
       if (previousProducts) {
-        queryClient.setQueryData<Product[]>(productKeys.list(params), (old) => {
-          if (!old) return [];
+        queryClient.setQueryData<ApiResponse<'products', Product[]>>(
+          productKeys.list(params),
+          (old) => {
+            if (!old) return old;
 
-          if (payload.type === 'delete') {
-            return old.filter((p) => p.id !== payload.data.id);
-          }
-          // ... logic untuk update & create sama seperti sebelumnya
-          return old;
-        });
+            switch (payload.type) {
+              case 'create':
+                return {
+                  ...old,
+                  products: [
+                    generateOptimisticProduct(payload.data),
+                    ...old.products,
+                  ],
+                  total: old.total + 1,
+                };
+              case 'update':
+                return {
+                  ...old,
+                  products: old.products.map((p) =>
+                    p.id === payload.data.id
+                      ? { ...p, ...payload.data.data }
+                      : p,
+                  ),
+                };
+              case 'delete':
+                return {
+                  ...old,
+                  products: old.products.filter(
+                    (p) => p.id !== payload.data.id,
+                  ),
+                  total: old.total - 1,
+                };
+              default:
+                return old;
+            }
+          },
+        );
       }
 
-      // Kirim "Foto" cadangan ke context agar bisa dipakai kalau Error
       return { previousProducts };
     },
 
-    // 2. KALAU GAGAL (onError)
     onError: (_err, _payload, context) => {
-      // Ambil foto cadangan tadi, balikin ke layar
       if (context?.previousProducts) {
         queryClient.setQueryData(
           productKeys.list(params),
@@ -76,9 +96,7 @@ export const useProductMutation = (params: Filter<Product>) => {
       }
     },
 
-    // 3. SETELAH SELESAI, sukses maupun gagal (onSettled)
     onSettled: () => {
-      // Tarik data paling baru dari server buat memastikan
       queryClient.invalidateQueries({ queryKey: productKeys.list(params) });
     },
   });

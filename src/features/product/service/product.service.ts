@@ -1,6 +1,5 @@
 import { apiClient } from '@/lib/axios';
 import type {
-  Category,
   CreateProductPayload,
   Product,
   UpdateProductPayload,
@@ -27,11 +26,11 @@ export const fetchProducts = async (
 };
 
 export const fetchProductsByCategory = async (
-  category: Category,
+  category: string,
   params?: Filter<Product>,
 ): Promise<ApiResponse<'products', Product[]>> => {
   const { search, ...rest } = params || {};
-  const baseUrl = `/products/category/${category.slug}`;
+  const baseUrl = `/products/category/${category}`;
   try {
     const { data } = await apiClient.get(baseUrl, {
       params: {
@@ -46,7 +45,7 @@ export const fetchProductsByCategory = async (
   }
 };
 
-export const fetchProduct = async (id: string): Promise<Product> => {
+export const fetchProduct = async (id: number): Promise<Product> => {
   const { data } = await apiClient.get('/products/' + id);
   return data;
 };
@@ -61,10 +60,7 @@ export const createProduct = async (
 export const updateProduct = async (
   product: UpdateProductPayload,
 ): Promise<Product> => {
-  const { data } = await apiClient.patch(
-    '/products/' + product.id,
-    product.data,
-  );
+  const { data } = await apiClient.put('/products/' + product.id, product.data);
   return data;
 };
 

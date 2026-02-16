@@ -8,7 +8,7 @@ export const useDetail = () => {
   const [searchParams] = useSearchParams();
 
   const [productId, setProductId] = useState<string>('');
-  const { product } = useProductDetail(productId);
+  const { product } = useProductDetail(Number(productId));
   const queryId = searchParams.get('id');
   const id = pathId ?? queryId;
 

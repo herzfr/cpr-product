@@ -1,80 +1,137 @@
+import { Edit, Eye, Plus, Trash2 } from 'lucide-react';
+import { DialogCustom } from '@/components/shared/dialog/Custom';
+import { ConfirmationDialog } from '@/components/shared/dialog/Confirmation';
+import type { Product } from '../types';
+import type { SimpleSelectOption } from '@/components/ui/SimpleSelect';
+import type { ToolbarActions } from '@/components/shared/table/components/ToolbarAction';
+import type { Action } from '@/components/shared/table/types/types';
 import { DataTable } from '@/components/shared/table';
 import { useProduct } from '../hook/product/useProduct';
-import { Plus } from 'lucide-react';
-import { DialogData } from '@/components/shared/dialog';
-import ProductForm from '../components/Form';
+import { ProductForm } from '../components/Form';
+import { ToastContainer } from '@/components/ui/Toast';
 
 export default function CatalogPage() {
   const {
-    products,
-    categories,
-    isLoading,
-    error,
+    productStore,
+    productList,
+    categoryList,
     columns,
-    chooseCategory,
-    search,
-    filter,
-    openDialog,
-    setChooseCategory,
-    handleView,
-    handleClickRow,
-    handleClickSort,
-    handleSearch,
-    closeDialog,
+    toast,
+    setFilter,
+    setProduct,
+    setActionRow,
+    setActionToolbar,
+    confirmationDialog,
+    retry,
   } = useProduct();
 
-  if (isLoading) return <p>Loading products...</p>;
-  if (error) return <p>Error loading products</p>;
+  const toolbarActions = [
+    {
+      id: 'create-product',
+      type: 'button',
+      label: 'Create Product',
+      className:
+        'cursor-pointer border-neutral-200 text-neutral-700 bg-ait-primary-600 hover:bg-neutral-50 hover:border-ait-primary-600 hover:text-slate-900 active:bg-neutral-100 text-white',
+      icon: <Plus className="w-4 h-4" />,
+      onClick: () => console.log('var(--color-slate-900)'),
+    },
+    {
+      id: 'select-category',
+      type: 'select',
+      label: 'Filter',
+      selected: productStore.category || 'all',
+      items: [
+        { value: 'all', label: 'All Categories' },
+        ...((categoryList.categories?.map((item) => ({
+          value: item.slug,
+          label: item.name,
+        })) as SimpleSelectOption[]) ?? []),
+      ],
+    },
+  ] as ToolbarActions;
+
+  const rowAction = [
+    {
+      id: 'view',
+      label: 'View',
+      className:
+        'p-2 text-ait-neutral-500 hover:text-ait-primary-600 hover:bg-ait-primary-50 rounded-lg transition-all duration-200 hover:shadow-sm',
+      icon: <Eye className="w-4 h-4" />,
+    },
+    {
+      id: 'edit',
+      label: 'Edit',
+      className:
+        'p-2 text-ait-neutral-500 hover:text-ait-primary-600 hover:bg-ait-primary-50 rounded-lg transition-all duration-200 hover:shadow-sm',
+      icon: <Edit className="w-4 h-4" />,
+    },
+    {
+      id: 'delete',
+      label: 'Delete',
+      className:
+        'p-2 text-ait-neutral-500 hover:text-ait-primary-600 hover:bg-ait-primary-50 rounded-lg transition-all duration-200 hover:shadow-sm',
+      icon: <Trash2 className="w-4 h-4" />,
+    },
+  ] as Action[];
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="bg-ait-neutral-50 rounded-lg">
+      <div className="bg-ait-neutral-50 rounded-lg ">
         <h3 className="text-ait-h3-semibold text-ait-neutral-900">Products</h3>
         <p className="text-ait-body-lg-regular text-ait-neutral-600">
           Track and manage your product, stock, and etc...
         </p>
       </div>
 
-      {/* Table Product */}
       <div className="bg-white rounded-xl border border-ait-neutral-200 shadow-sm overflow-hidden">
-        <DataTable
-          data={products}
+        <DataTable<Product>
+          data={productList.products}
           columns={columns}
-          onRowClick={handleView}
-          onRowClickType={handleClickRow}
-          onSortChange={handleClickSort}
-          onSearchChange={handleSearch}
-          onCategoryChange={setChooseCategory}
-          enablePagination
-          enableSorting
-          enableFiltering
-          enableRowSelection
-          pageSize={filter.limit ?? 10}
-          searchPlaceholder="Search product..."
-          searchValue={search}
-          chooseCategory={chooseCategory}
-          categories={categories}
-          actions={[
-            {
-              label: 'Create Product',
-              variant: 'primary' as const,
-              className:
-                'cursor-pointer border-neutral-200 text-neutral-700 hover:bg-neutral-50 hover:text-slate-900 active:bg-neutral-100 text-white',
-              onClick: () => console.log('Sort by'),
-              icon: <Plus className="w-4 h-4" />,
-            },
-          ]}
+          filter={productStore.filter}
+          placeholder={{ search: 'Search product...' }}
+          toolbarAction={toolbarActions}
+          actions={rowAction}
+          total={productList.meta.total}
+          loading={productList.isFetching}
+          error={productList.error}
+          onFilterChange={setFilter}
+          onRowClick={setProduct}
+          onRowActionChange={setActionRow}
+          onActionToolbar={setActionToolbar}
+          onRetry={retry}
         />
       </div>
 
-      <DialogData
-        title="Create Product"
-        isOpen={openDialog}
-        isShowButtonTrigger={false}
-        component={<ProductForm />} // Inject form here
-        onClose={closeDialog} // Handle close dialog
-      />
+      {productStore.dialog.type === 'custom' && (
+        <DialogCustom
+          title={productStore.dialog.title}
+          open={productStore.dialog.open}
+          isLoading={productStore.dialog.waiting}
+          btnConfirmText="Submit"
+          component={<ProductForm />}
+          onConfirm={confirmationDialog}
+          onClose={() => {
+            productStore.dispatch({ type: 'CLOSE_DIALOG' });
+          }}
+        />
+      )}
+
+      {productStore.dialog.type === 'confirmation' && (
+        <ConfirmationDialog
+          title={productStore.dialog.title}
+          type="danger"
+          btnConfirmText="Delete Product"
+          message={`Are you sure you want to delete "${productStore.product?.title}"? This action cannot be undone.`}
+          open={productStore.dialog.open}
+          isLoading={productStore.dialog.waiting}
+          onConfirm={confirmationDialog}
+          onClose={() => {
+            productStore.dispatch({ type: 'CLOSE_DIALOG' });
+          }}
+        />
+      )}
+
+      <ToastContainer toasts={toast.toasts} />
     </div>
   );
 }

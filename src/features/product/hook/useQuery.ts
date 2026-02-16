@@ -13,7 +13,7 @@ export const productKeys = {
   categories: ['categories'] as const,
   list: (params: Filter<Product>) => [...productKeys.all, params] as const,
   listCategory: () => [...productKeys.categories] as const,
-  detail: (id: string) => [...productKeys.all, id] as const,
+  detail: (id: number) => [...productKeys.all, id] as const,
 };
 
 export const useProductsQuery = (params: Filter<Product>) => {
@@ -25,7 +25,7 @@ export const useProductsQuery = (params: Filter<Product>) => {
 };
 
 export const useProductsCategoryQuery = (
-  category: Category,
+  category: string,
   params?: Filter<Product>,
 ) => {
   return useQuery<ApiResponse<'products', Product[]>>({
@@ -35,7 +35,7 @@ export const useProductsCategoryQuery = (
   });
 };
 
-export const useProductQuery = (id: string) =>
+export const useProductQuery = (id: number) =>
   useQuery<Product>({
     queryKey: productKeys.detail(id),
     queryFn: () => fetchProduct(id),

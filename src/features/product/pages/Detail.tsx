@@ -211,15 +211,4 @@ export default function Detail() {
       </div>
     </div>
   );
-
-  // return (
-  //   <div>
-  //     <h1>Product Detail</h1>
-  //     {product &&
-  //     <div>
-
-  //     </div>
-  //     }
-  //   </div>
-  // );
 }
