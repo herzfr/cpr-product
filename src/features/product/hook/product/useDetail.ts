@@ -13,7 +13,9 @@ export const useDetail = () => {
   const queryId = searchParams.get('id');
   const id = pathId ?? queryId;
 
-  const [displayImg, setDisplayImg] = useState<string>('');
+  const [displayImg, setDisplayImg] = useState<string>(
+    'https://dummyimage.com/600x600/d4d4d4/fff&text=No+Image',
+  );
   const productStore = useProductStore();
 
   useEffect(() => {
@@ -25,7 +27,11 @@ export const useDetail = () => {
   }, [id, navigate]);
 
   useEffect(() => {
-    setDisplayImg(product?.images[0] ?? '');
+    if (product?.images?.length) {
+      setDisplayImg(product.images[0]);
+    } else {
+      setDisplayImg('https://dummyimage.com/600x600/d4d4d4/fff&text=No+Image');
+    }
   }, [product]);
 
   const back = () => {
