@@ -8,7 +8,6 @@ import type { Action } from '@/components/shared/table/types/types';
 import { DataTable } from '@/components/shared/table';
 import { useProduct } from '../hook/product/useProduct';
 import { ProductForm } from '../components/Form';
-import { ToastContainer } from '@/components/ui/Toast';
 
 export default function CatalogPage() {
   const {
@@ -16,7 +15,6 @@ export default function CatalogPage() {
     productList,
     categoryList,
     columns,
-    toast,
     setFilter,
     setProduct,
     setActionRow,
@@ -130,8 +128,6 @@ export default function CatalogPage() {
           }}
         />
       )}
-
-      <ToastContainer toasts={toast.toasts} />
     </div>
   );
 }

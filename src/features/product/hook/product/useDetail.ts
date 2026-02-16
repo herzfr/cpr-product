@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useProductDetail } from './useFetchProduct';
+import { useProductStore } from '../../store/product/product.store';
 
 export const useDetail = () => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export const useDetail = () => {
   const id = pathId ?? queryId;
 
   const [displayImg, setDisplayImg] = useState<string>('');
+  const productStore = useProductStore();
 
   useEffect(() => {
     if (id == null) {
@@ -30,10 +32,17 @@ export const useDetail = () => {
     navigate('/', { replace: true });
   };
 
+  const updateProduct = () => {
+    if (product)
+      productStore.dispatch({ type: 'UPDATE_PRODUCT', payload: product });
+  };
+
   return {
     product,
     displayImg,
+    productStore,
     setDisplayImg,
+    updateProduct,
     back,
   };
 };

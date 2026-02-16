@@ -27,7 +27,13 @@ export function Filter<TData>({
           className="flex-1 max-w-sm"
           value={filter.search}
           onChange={(e) =>
-            onFilterChange({ search: e.currentTarget.value, skip: 0 })
+            onFilterChange({
+              search: e.currentTarget.value,
+              skip: 0,
+              limit: filter.limit,
+              order: filter.order,
+              sortBy: filter.sortBy,
+            })
           }
           placeholder={placeholder?.search ?? 'Input field'}
           leading={<Search />}

@@ -27,7 +27,6 @@ export function DataTable<TData>({
     filter,
     total,
   });
-
   const table = useReactTable({
     data,
     columns,

@@ -8,8 +8,7 @@ import {
   type ProductMutationPayload,
 } from '../useProductMutation';
 import { useProductStore } from '../../store/product/product.store';
-import { useToast } from '@/hooks/useToast';
-// import { useProductStore } from '../../store/product/product.store';
+import { useToastStore } from '../../store/toast/toast.store';
 
 export const useProductForm = () => {
   const { product, filter, dialog, dispatch } = useProductStore();
@@ -36,7 +35,7 @@ export const useProductForm = () => {
       category: product?.category ?? '',
     },
   });
-  const toast = useToast();
+  const toast = useToastStore();
 
   const setEditFormValues = useCallback(() => {
     reset({
@@ -103,10 +102,18 @@ export const useProductForm = () => {
 
       mutate(payload, {
         onSuccess: () => {
-          console.log('successs');
-
+          const message = `Success to ${payload.type} the product`;
+          switch (payload.type) {
+            case 'create':
+              toast.success('Create success!', message);
+              break;
+            case 'update':
+              toast.success('Update success!', message);
+              break;
+            default:
+              break;
+          }
           dispatch({ type: 'CLOSE_DIALOG' });
-          toast.success('Delete Success', 'Your product has been deleted');
         },
         onError: (error) => {
           const message =

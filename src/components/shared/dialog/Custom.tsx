@@ -13,7 +13,7 @@ type DialogStateProps = {
   btnConfirmText: string;
   isLoading: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm?: () => void;
 };
 
 export function DialogCustom({

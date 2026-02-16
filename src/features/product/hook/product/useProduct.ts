@@ -3,18 +3,20 @@ import { useProductStore } from '../../store/product/product.store';
 import { useCategoryList, useProductList } from './useFetchProduct';
 import type { Product } from '../../types';
 import { columnsProductTable } from '@/constants/table';
-import { useEffect } from 'react';
+import { useRef } from 'react';
 import type { Filter } from '@/types/general';
 import type {
   RowActionEvent,
   ToolbarActionEvent,
 } from '@/components/shared/table/types/types';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProductMutation } from '../useProductMutation';
-import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useToastStore } from '../../store/toast/toast.store';
 
 export const useProduct = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialized = useRef(false);
   const productStore = useProductStore();
   const debouncedSearch = useDebounce(productStore.filter.search, 600);
   const debouncedFilter = {
@@ -23,18 +25,67 @@ export const useProduct = () => {
   };
   const productList = useProductList(debouncedFilter, productStore.category);
   const categoryList = useCategoryList();
-  const toast = useToast();
+  const toast = useToastStore();
   const columns: ColumnDef<Product>[] = columnsProductTable;
   const { mutateAsync } = useProductMutation(productStore.filter);
-
   const navigate = useNavigate();
+  const isKeyOfProduct = (key: string): key is keyof Product => {
+    return ['title', 'brand', 'category', 'price', 'stock'].includes(key);
+  };
 
-  useEffect(() => {
-    productList.refetch();
-  }, []);
+  if (!initialized.current) {
+    const limit = Number(searchParams.get('limit')) || 10;
+    const skip = Number(searchParams.get('skip')) || 0;
+    const search = searchParams.get('q') || '';
+    const order = searchParams.get('order') as 'asc' | 'desc' | undefined;
+    const rawSortBy = searchParams.get('sortBy');
+    let sortBy: keyof Product | undefined;
+    if (rawSortBy && isKeyOfProduct(rawSortBy)) {
+      sortBy = rawSortBy;
+    }
+    productStore.dispatch({
+      type: 'SET_FILTER',
+      payload: { limit, skip, search, order, sortBy },
+    });
+    initialized.current = true;
+  }
 
-  const setFilter = (f: Filter<Product>) =>
+  const syncUrl = (filter: typeof productStore.filter) => {
+    const isDefault =
+      (filter.skip === 0 || !filter.skip) &&
+      !filter.search?.trim() &&
+      !filter.sortBy &&
+      !filter.order;
+
+    if (isDefault) {
+      setSearchParams({});
+      return;
+    }
+
+    const params: Record<string, string> = {
+      limit: String(filter.limit ?? 10),
+      skip: String(filter.skip ?? 0),
+    };
+
+    if (filter.search?.trim()) {
+      params.search = filter.search.trim();
+    }
+
+    if (filter.sortBy) {
+      params.sortBy = filter.sortBy;
+    }
+
+    if (filter.order) {
+      params.order = filter.order;
+    }
+
+    setSearchParams(params);
+  };
+
+  const setFilter = (f: Filter<Product>) => {
+    syncUrl(f);
     productStore.dispatch({ type: 'SET_FILTER', payload: f });
+  };
 
   const retry = () => productList.refetch();
 
@@ -88,6 +139,9 @@ export const useProduct = () => {
         break;
       case 'create-product':
         productStore.dispatch({
+          type: 'RESET_PRODUCT',
+        });
+        productStore.dispatch({
           type: 'CREATE_PRODUCT',
         });
         break;
@@ -126,7 +180,6 @@ export const useProduct = () => {
     productList,
     categoryList,
     columns,
-    toast,
 
     setFilter,
     setProduct,
