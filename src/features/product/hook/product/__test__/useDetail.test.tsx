@@ -59,24 +59,11 @@ describe('useDetail', () => {
     expect(result.current.product).toEqual(mockProduct);
   });
 
-  it('should fallback to searchParams if id is not in params', () => {
+  it('should navigate to /product if no id is found', () => {
     (reactRouter.useParams as any).mockReturnValue({ id: undefined });
-    (reactRouter.useSearchParams as any).mockReturnValue([
-      new URLSearchParams('id=2'),
-    ]);
 
     renderHook(() => useDetail(), { wrapper });
-    expect(useFetchProduct.useProductDetail).toHaveBeenCalledWith(2);
-  });
-
-  it('should navigate to home if no id is found', () => {
-    (reactRouter.useParams as any).mockReturnValue({ id: undefined });
-    (reactRouter.useSearchParams as any).mockReturnValue([
-      new URLSearchParams(),
-    ]);
-
-    renderHook(() => useDetail(), { wrapper });
-    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith('/product', { replace: true });
   });
 
   it('should set displayImg to the first product image', () => {
@@ -92,12 +79,18 @@ describe('useDetail', () => {
     expect(result.current.displayImg).toBe('img2.png');
   });
 
-  it('should navigate back correctly', () => {
+  it('should navigate back correctly to /product', () => {
     const { result } = renderHook(() => useDetail(), { wrapper });
     act(() => {
       result.current.back();
     });
-    expect(mockNavigate).toHaveBeenCalledWith('/', { replace: true });
+    expect(mockNavigate).toHaveBeenCalledWith('/product', { replace: true });
+  });
+
+  it('should detect invalid alphanumeric IDs', () => {
+    (reactRouter.useParams as any).mockReturnValue({ id: 'asdas' });
+    const { result } = renderHook(() => useDetail(), { wrapper });
+    expect(result.current.isInvalidId).toBe(true);
   });
 
   it('should dispatch UPDATE_PRODUCT when updateProduct is called', () => {

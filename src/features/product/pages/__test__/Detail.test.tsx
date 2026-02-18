@@ -21,42 +21,57 @@ const mockUpdateProduct = vi.fn();
 const mockBack = vi.fn();
 const mockDispatch = vi.fn();
 
+const defaultDetailValue = {
+  product: {
+    title: 'Test Product',
+    description: 'Test description',
+    images: ['img1.png', 'img2.png'],
+    brand: 'BrandX',
+    category: 'category test',
+    stock: 10,
+    weight: 100,
+    dimensions: { depth: 10, width: 20, height: 30 },
+    sku: 'SKU123',
+    warrantyInformation: '1 year',
+    shippingInformation: 'Free',
+    minimumOrderQuantity: 1,
+    discountPercentage: 10,
+    rating: 4.5,
+    returnPolicy: '30 days',
+    meta: { barcode: '123456', qrCode: 'qr.png' },
+    price: 1000,
+  },
+  isLoading: false,
+  error: null,
+  isInvalidId: false,
+  displayImg: 'img1.png',
+  productStore: {
+    dialog: { type: 'custom', open: true, waiting: false },
+    dispatch: mockDispatch,
+  },
+  setDisplayImg: mockSetDisplayImg,
+  updateProduct: mockUpdateProduct,
+  back: mockBack,
+};
+
+const mockUseDetail = vi.fn(() => defaultDetailValue);
+
 vi.mock('../../hook/product/useDetail', () => ({
-  useDetail: () => ({
-    product: {
-      title: 'Test Product',
-      description: 'Test description',
-      images: ['img1.png', 'img2.png'],
-      brand: 'BrandX',
-      category: 'category test',
-      stock: 10,
-      weight: 100,
-      dimensions: { depth: 10, width: 20, height: 30 },
-      sku: 'SKU123',
-      warrantyInformation: '1 year',
-      shippingInformation: 'Free',
-      minimumOrderQuantity: 1,
-      discountPercentage: 10,
-      rating: 4.5,
-      returnPolicy: '30 days',
-      meta: { barcode: '123456', qrCode: 'qr.png' },
-      price: 1000,
-    },
-    displayImg: 'img1.png',
-    productStore: {
-      dialog: { type: 'custom', open: true, waiting: false },
-      dispatch: mockDispatch,
-    },
-    setDisplayImg: mockSetDisplayImg,
-    updateProduct: mockUpdateProduct,
-    back: mockBack,
-  }),
+  useDetail: () => mockUseDetail(),
 }));
 
 vi.mock('@/components/shared/dialog/Custom', () => ({
   DialogCustom: ({ btnConfirmText, onClose }: any) => (
     <button onClick={onClose}>{btnConfirmText}</button>
   ),
+}));
+
+vi.mock('@/features/not-found', () => ({
+  default: () => <div>Product Not Found Mock</div>,
+}));
+
+vi.mock('@/components/ui/Loading', () => ({
+  LoadingFallback: () => <div>Loading Mock</div>,
 }));
 
 // Utility render wrapper
@@ -70,6 +85,11 @@ const renderWithProviders = (ui: React.ReactElement) => {
 };
 
 describe('Detail Component', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseDetail.mockReturnValue(defaultDetailValue);
+  });
+
   test('renders product details', () => {
     renderWithProviders(<Detail />);
     expect(screen.getByText('Test Product')).toBeInTheDocument();
@@ -78,6 +98,35 @@ describe('Detail Component', () => {
     expect(screen.getByText('Category Test')).toBeInTheDocument();
     expect(screen.getByText('10')).toBeInTheDocument();
     expect(screen.getByText('$1000')).toBeInTheDocument();
+  });
+
+  test('renders loading state', () => {
+    mockUseDetail.mockReturnValue({
+      ...defaultDetailValue,
+      isLoading: true,
+      product: undefined,
+    } as any);
+    renderWithProviders(<Detail />);
+    expect(screen.getByText('Loading Mock')).toBeInTheDocument();
+  });
+
+  test('renders not found state when product is null', () => {
+    mockUseDetail.mockReturnValue({
+      ...defaultDetailValue,
+      product: undefined,
+    } as any);
+    renderWithProviders(<Detail />);
+    expect(screen.getByText('Product Not Found Mock')).toBeInTheDocument();
+  });
+
+  test('renders not found state when isInvalidId is true', () => {
+    mockUseDetail.mockReturnValue({
+      ...defaultDetailValue,
+      isInvalidId: true,
+      product: undefined,
+    } as any);
+    renderWithProviders(<Detail />);
+    expect(screen.getByText('Product Not Found Mock')).toBeInTheDocument();
   });
 
   test('calls back on Kembali button click', () => {
