@@ -5,6 +5,7 @@ import {
   useProductQuery,
   useProductsCategoryQuery,
   useProductsQuery,
+  useProductsSkipQuery,
 } from '../useQuery';
 
 export const useProductList = (
@@ -23,6 +24,34 @@ export const useProductList = (
     },
     isLoading: query.isLoading,
     isFetching: query.isFetching,
+    error: query.error,
+    refetch: query.refetch,
+  };
+};
+
+export const useProductInfiniteList = (
+  params: Filter<Product>,
+  category?: string | null,
+) => {
+  const query = useProductsSkipQuery(params, category);
+
+  const flatProducts =
+    query.data?.pages?.flatMap((page) => page?.products ?? []) ?? [];
+
+  const total = query.data?.pages?.[0]?.total ?? 0;
+  const lastPage = query.data?.pages?.[(query.data?.pages?.length ?? 0) - 1];
+
+  return {
+    products: flatProducts,
+    meta: {
+      total,
+      limit: lastPage?.limit ?? params.limit ?? 10,
+      skip: lastPage?.skip ?? 0,
+    },
+    isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    hasNextPage: !!query.hasNextPage,
+    fetchNextPage: query.fetchNextPage,
     error: query.error,
     refetch: query.refetch,
   };

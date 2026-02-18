@@ -4,6 +4,7 @@ import type { Product } from '../../types';
 export type ProductState = {
   product: Product | null;
   category: string | null;
+  displayMode: 'pagination' | 'infinite';
   filter: Filter<Product>;
   dialog: {
     title: string;
@@ -22,6 +23,7 @@ export type ProductAction =
   | { type: 'DELETE_PRODUCT'; payload: Product }
   | { type: 'SET_WAITING'; payload: boolean }
   | { type: 'CLOSE_DIALOG' }
+  | { type: 'SET_DISPLAY_MODE'; payload: 'pagination' | 'infinite' }
   | { type: 'NEXT_PAGE' }
   | { type: 'PREV_PAGE' }
   | { type: 'RESET_PRODUCT' }
@@ -32,6 +34,7 @@ export type ProductAction =
 export const initialProductState: ProductState = {
   product: null,
   category: null,
+  displayMode: 'pagination',
   filter: {
     limit: 10,
     skip: 0,
@@ -74,6 +77,16 @@ export function useProductReducer(
         filter: {
           ...state.filter,
           ...action.payload,
+        },
+      };
+
+    case 'SET_DISPLAY_MODE':
+      return {
+        ...state,
+        displayMode: action.payload,
+        filter: {
+          ...state.filter,
+          skip: 0,
         },
       };
 

@@ -4,7 +4,7 @@ import type {
   Product,
   UpdateProductPayload,
 } from '../types';
-import { productKeys } from './useQuery';
+import { PRODUCT_KEYS } from './useQuery';
 import {
   createProduct,
   deleteProduct,
@@ -34,19 +34,26 @@ export const productMutationFn = async (payload: ProductMutationPayload) => {
 
 export const useProductMutation = (params: Filter<Product>) => {
   const queryClient = useQueryClient();
+  const queryKey = PRODUCT_KEYS.list(
+    null,
+    params.search,
+    params.sortBy,
+    params.order,
+    params.skip,
+    params.limit,
+  );
 
   return useMutation({
     mutationFn: productMutationFn,
     onMutate: async (payload: ProductMutationPayload) => {
-      await queryClient.cancelQueries({ queryKey: productKeys.list(params) });
+      await queryClient.cancelQueries({ queryKey });
 
-      const previousProducts = queryClient.getQueryData<
-        ApiResponse<'products', Product[]>
-      >(productKeys.list(params));
+      const previousProducts =
+        queryClient.getQueryData<ApiResponse<'products', Product[]>>(queryKey);
 
       if (previousProducts) {
         queryClient.setQueryData<ApiResponse<'products', Product[]>>(
-          productKeys.list(params),
+          queryKey,
           (old) => {
             if (!old) return old;
 
@@ -89,15 +96,12 @@ export const useProductMutation = (params: Filter<Product>) => {
 
     onError: (_err, _payload, context) => {
       if (context?.previousProducts) {
-        queryClient.setQueryData(
-          productKeys.list(params),
-          context.previousProducts,
-        );
+        queryClient.setQueryData(queryKey, context.previousProducts);
       }
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: productKeys.list(params) });
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 };

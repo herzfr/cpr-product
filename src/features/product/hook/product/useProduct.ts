@@ -1,6 +1,10 @@
 import type { ColumnDef, Row } from '@tanstack/react-table';
 import { useProductStore } from '../../store/product/product.store';
-import { useCategoryList, useProductList } from './useFetchProduct';
+import {
+  useCategoryList,
+  useProductInfiniteList,
+  useProductList,
+} from './useFetchProduct';
 import type { Product } from '../../types';
 import { columnsProductTable } from '@/constants/table';
 import { useRef } from 'react';
@@ -13,6 +17,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useProductMutation } from '../useProductMutation';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useToastStore } from '../../store/toast/toast.store';
+import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 export const useProduct = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,6 +29,14 @@ export const useProduct = () => {
     search: debouncedSearch,
   };
   const productList = useProductList(debouncedFilter, productStore.category);
+  const infiniteList = useProductInfiniteList(
+    debouncedFilter,
+    productStore.category,
+  );
+
+  const isInfinite = productStore.displayMode === 'infinite';
+  const currentList = isInfinite ? infiniteList : productList;
+
   const categoryList = useCategoryList();
   const toast = useToastStore();
   const columns: ColumnDef<Product>[] = columnsProductTable;
@@ -33,16 +46,49 @@ export const useProduct = () => {
     return ['title', 'brand', 'category', 'price', 'stock'].includes(key);
   };
 
+  const handleLoadMore = () => {
+    if (isInfinite && infiniteList.hasNextPage && !infiniteList.isFetching) {
+      infiniteList.fetchNextPage();
+
+      const nextSkip =
+        (infiniteList.meta.skip ?? 0) + (infiniteList.meta.limit ?? 10);
+      const nextFilter = { ...productStore.filter, skip: nextSkip };
+
+      productStore.dispatch({
+        type: 'SET_FILTER',
+        payload: nextFilter,
+      });
+      syncUrl(nextFilter);
+    }
+  };
+
+  const { triggerRef } = useInfiniteScroll({
+    onLoadMore: handleLoadMore,
+    enabled: isInfinite,
+    hasMore: !!infiniteList.hasNextPage,
+    isFetching: infiniteList.isFetching,
+  });
+
   if (!initialized.current) {
-    const limit = Number(searchParams.get('limit')) || 10;
-    const skip = Number(searchParams.get('skip')) || 0;
-    const search = searchParams.get('q') || '';
-    const order = searchParams.get('order') as 'asc' | 'desc' | undefined;
-    const rawSortBy = searchParams.get('sortBy');
+    let limit = Number(searchParams.get('limit')) || 10;
+    let skip = Number(searchParams.get('skip')) || 0;
+    let search = searchParams.get('q') || '';
+    let mode = searchParams.get('mode') as 'pagination' | 'infinite' | null;
+    let order = searchParams.get('order') as 'asc' | 'desc' | undefined;
+    let rawSortBy = searchParams.get('sortBy');
     let sortBy: keyof Product | undefined;
     if (rawSortBy && isKeyOfProduct(rawSortBy)) {
       sortBy = rawSortBy;
     }
+
+    if (mode) {
+      productStore.dispatch({ type: 'SET_DISPLAY_MODE', payload: mode });
+
+      if (mode === 'infinite') {
+        skip = 0;
+      }
+    }
+
     productStore.dispatch({
       type: 'SET_FILTER',
       payload: { limit, skip, search, order, sortBy },
@@ -50,12 +96,17 @@ export const useProduct = () => {
     initialized.current = true;
   }
 
-  const syncUrl = (filter: typeof productStore.filter) => {
+  const syncUrl = (
+    filter: typeof productStore.filter,
+    mode?: 'pagination' | 'infinite',
+  ) => {
+    const currentMode = mode || productStore.displayMode;
     const isDefault =
       (filter.skip === 0 || !filter.skip) &&
       !filter.search?.trim() &&
       !filter.sortBy &&
-      !filter.order;
+      !filter.order &&
+      currentMode === 'pagination';
 
     if (isDefault) {
       setSearchParams({});
@@ -68,7 +119,7 @@ export const useProduct = () => {
     };
 
     if (filter.search?.trim()) {
-      params.search = filter.search.trim();
+      params.q = filter.search.trim();
     }
 
     if (filter.sortBy) {
@@ -77,6 +128,10 @@ export const useProduct = () => {
 
     if (filter.order) {
       params.order = filter.order;
+    }
+
+    if (currentMode && currentMode !== 'pagination') {
+      params.mode = currentMode;
     }
 
     setSearchParams(params);
@@ -146,6 +201,12 @@ export const useProduct = () => {
         });
         break;
 
+      case 'display-mode':
+        if (action.type === 'select') {
+          setDisplayMode(action.value as 'pagination' | 'infinite');
+        }
+        break;
+
       default:
         break;
     }
@@ -175,16 +236,24 @@ export const useProduct = () => {
     });
   };
 
+  const setDisplayMode = (mode: 'pagination' | 'infinite') => {
+    productStore.dispatch({ type: 'SET_DISPLAY_MODE', payload: mode });
+    syncUrl(productStore.filter, mode);
+  };
+
   return {
     productStore,
-    productList,
+    productList: currentList,
     categoryList,
     columns,
+    triggerRef,
+    displayMode: productStore.displayMode,
 
     setFilter,
     setProduct,
     setActionRow,
     setActionToolbar,
+    setDisplayMode,
 
     confirmationDialog,
     retry,

@@ -51,6 +51,7 @@ export interface DataTableProps<TData> {
   placeholder?: {
     search: string;
   };
+  isPaginationShow: boolean;
 
   onFilterChange: (filter: Filter<TData>) => void;
   onRowClick: (row?: Row<TData>) => void;
