@@ -5,6 +5,7 @@ import { ToastContainer } from '@/components/ui/Toast';
 
 const Catalog = lazy(() => import('@/features/product/pages/Catalog'));
 const Detail = lazy(() => import('@/features/product/pages/Detail'));
+const ProductNotFound = lazy(() => import('@/features/not-found'));
 
 export default function ProductPage() {
   const toast = useToastStore((state) => state.toasts);
@@ -15,8 +16,8 @@ export default function ProductPage() {
 
   const routes: AppRoute[] = [
     { index: true, Component: Catalog },
-    { path: 'detail', Component: Detail },
     { path: 'detail/:id', Component: Detail },
+    { path: '*', Component: ProductNotFound },
   ];
 
   return (

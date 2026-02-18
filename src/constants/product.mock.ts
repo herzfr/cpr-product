@@ -1,0 +1,31 @@
+import type { Product } from '@/features/product/types';
+
+export const ProductMock: Product = {
+  id: 1,
+  title: 'Test Product',
+  description: 'Test description',
+  images: ['img1.png', 'img2.png'],
+  brand: 'BrandX',
+  category: 'category test',
+  stock: 10,
+  weight: 100,
+  dimensions: { depth: 10, width: 20, height: 30 },
+  sku: 'SKU123',
+  warrantyInformation: '1 year',
+  shippingInformation: 'Free',
+  minimumOrderQuantity: 1,
+  discountPercentage: 10,
+  rating: 4.5,
+  returnPolicy: '30 days',
+  availabilityStatus: '',
+  reviews: [],
+  tags: [],
+  thumbnail: '',
+  meta: {
+    barcode: '123456',
+    qrCode: 'qr.png',
+    createdAt: '',
+    updatedAt: '',
+  },
+  price: 1000,
+};

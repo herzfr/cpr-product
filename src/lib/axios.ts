@@ -14,6 +14,10 @@ axiosRetry(apiClient, {
   retries: 3,
   retryDelay: (retryCount) => axiosRetry.exponentialDelay(retryCount),
   retryCondition: (error: AxiosError) => {
+    // Jangan retry jika 429 (Too Many Requests) untuk menghindari block permanen/CORS
+    if (error.response?.status === 429) {
+      return false;
+    }
     return (
       axiosRetry.isNetworkOrIdempotentRequestError(error) ||
       (error.response?.status ? error.response.status >= 500 : false)
@@ -35,11 +39,6 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    // if (error.response?.status === 401) {
-    //   localStorage.removeItem('auth_token');
-    //   window.location.href = '/login';
-    // }
-
     console.error('API Error:', {
       url: error.config?.url ?? 'unknown',
       method: error.config?.method ?? 'unknown',
