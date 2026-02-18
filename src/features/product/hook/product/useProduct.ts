@@ -100,8 +100,8 @@ export const useProduct = () => {
   const setActionRow = (action: RowActionEvent<Product>) => {
     switch (action.type) {
       case 'view':
-        const id = Number(action.value.id) + 1;
-        navigate(`/product/detail?id=${id}`);
+        const id = action.value.id;
+        navigate(`/product/detail/${id}`);
         break;
       case 'edit':
         productStore.dispatch({

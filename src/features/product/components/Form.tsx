@@ -8,10 +8,11 @@ export const ProductForm = () => {
     <form className="gap-2 flex flex-col" onSubmit={handleSubmit}>
       <div className="space-y-4">
         <div className="space-y-2">
-          <label className="text-ait-body-md-bold text-ait-neutral-900">
+          <label htmlFor="title" className="text-ait-body-md-bold text-ait-neutral-900">
             Title
           </label>
           <input
+            id="title"
             type="text"
             placeholder="Enter name"
             {...register('title')}
@@ -24,10 +25,11 @@ export const ProductForm = () => {
           )}
         </div>
         <div className="space-y-2">
-          <label className="text-ait-body-md-bold text-ait-neutral-900">
+          <label htmlFor="description" className="text-ait-body-md-bold text-ait-neutral-900">
             Description
           </label>
           <input
+            id="description"
             type="text"
             placeholder="Enter description"
             {...register('description')}
@@ -41,10 +43,11 @@ export const ProductForm = () => {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-ait-body-md-bold text-ait-neutral-900">
+            <label htmlFor="brand" className="text-ait-body-md-bold text-ait-neutral-900">
               Brand
             </label>
             <input
+              id="brand"
               type="text"
               placeholder="Enter brand"
               {...register('brand')}
@@ -57,10 +60,11 @@ export const ProductForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-ait-body-md-bold text-ait-neutral-900">
+            <label htmlFor="category" className="text-ait-body-md-bold text-ait-neutral-900">
               Category
             </label>
             <input
+              id="category"
               type="text"
               placeholder="Enter category"
               {...register('category')}
@@ -75,11 +79,12 @@ export const ProductForm = () => {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-ait-body-md-bold text-ait-neutral-900">
+            <label htmlFor="price" className="text-ait-body-md-bold text-ait-neutral-900">
               Price
               <span className="text-ait-danger-500 ml-1">*</span>
             </label>
             <input
+              id="price"
               type="text"
               placeholder="Enter price"
               {...register('price', { valueAsNumber: true })}
@@ -92,11 +97,12 @@ export const ProductForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-ait-body-md-bold text-ait-neutral-900">
+            <label htmlFor="discountPercentage" className="text-ait-body-md-bold text-ait-neutral-900">
               Discount
               <span className="text-ait-danger-500 ml-1">*</span>
             </label>
             <input
+              id="discountPercentage"
               type="text"
               placeholder="Enter Discount"
               {...register('discountPercentage', { valueAsNumber: true })}
@@ -111,11 +117,12 @@ export const ProductForm = () => {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label className="text-ait-body-md-bold text-ait-neutral-900">
+            <label htmlFor="rating" className="text-ait-body-md-bold text-ait-neutral-900">
               Rating
               <span className="text-ait-danger-500 ml-1">*</span>
             </label>
             <input
+              id="rating"
               type="text"
               placeholder="Enter Rating"
               {...register('rating', { valueAsNumber: true })}
@@ -128,11 +135,12 @@ export const ProductForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-ait-body-md-bold text-ait-neutral-900">
+            <label htmlFor="stock" className="text-ait-body-md-bold text-ait-neutral-900">
               Stock
               <span className="text-ait-danger-500 ml-1">*</span>
             </label>
             <input
+              id="stock"
               type="text"
               placeholder="Enter Stock"
               {...register('stock', { valueAsNumber: true })}

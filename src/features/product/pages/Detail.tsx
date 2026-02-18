@@ -5,9 +5,15 @@ import { DialogCustom } from '@/components/shared/dialog/Custom';
 import { ProductForm } from '../components/Form';
 import { Button } from '@/components/ui/Button';
 
+import { LoadingFallback } from '@/components/ui/Loading';
+import ProductNotFound from '@/features/not-found';
+
 export default function Detail() {
   const {
     product,
+    isLoading,
+    error,
+    isInvalidId,
     displayImg,
     productStore,
     setDisplayImg,
@@ -15,7 +21,11 @@ export default function Detail() {
     back,
   } = useDetail();
 
-  if (!product) return null;
+  if (isLoading) return <LoadingFallback />;
+
+  if (isInvalidId || error || !product) {
+    return <ProductNotFound />;
+  }
 
   return (
     <div className="space-y-8">
@@ -217,7 +227,6 @@ export default function Detail() {
                     size="md"
                     className="min-w-28"
                     isIconOnly
-                    aria-label="Confirm"
                     onClick={updateProduct}
                   >
                     <Edit />

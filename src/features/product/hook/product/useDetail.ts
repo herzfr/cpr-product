@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useProductDetail } from './useFetchProduct';
 import { useProductStore } from '../../store/product/product.store';
 
 export const useDetail = () => {
   const navigate = useNavigate();
-  const { id: pathId } = useParams();
-  const [searchParams] = useSearchParams();
+  const { id } = useParams();
 
   const [productId, setProductId] = useState<string>('');
-  const { product } = useProductDetail(Number(productId));
-  const queryId = searchParams.get('id');
-  const id = pathId ?? queryId;
+  const { product, isLoading, error } = useProductDetail(Number(productId));
 
   const [displayImg, setDisplayImg] = useState<string>(
     'https://dummyimage.com/600x600/d4d4d4/fff&text=No+Image',
@@ -19,10 +16,10 @@ export const useDetail = () => {
   const productStore = useProductStore();
 
   useEffect(() => {
-    if (id == null) {
-      navigate('/', { replace: true });
-    } else {
+    if (id) {
       setProductId(id);
+    } else {
+      navigate('/product', { replace: true });
     }
   }, [id, navigate]);
 
@@ -35,7 +32,7 @@ export const useDetail = () => {
   }, [product]);
 
   const back = () => {
-    navigate('/', { replace: true });
+    navigate('/product', { replace: true });
   };
 
   const updateProduct = () => {
@@ -43,8 +40,13 @@ export const useDetail = () => {
       productStore.dispatch({ type: 'UPDATE_PRODUCT', payload: product });
   };
 
+  const isInvalidId = isNaN(Number(id));
+
   return {
     product,
+    isLoading,
+    error,
+    isInvalidId,
     displayImg,
     productStore,
     setDisplayImg,
