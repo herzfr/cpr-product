@@ -95,4 +95,6 @@ Ini hanya akan mensimulasikan permintaan PUT/PATCH dan akan mengembalikan produk
 - Menghapus produk tidak akan benar-benar menghapusnya di server.
 Ini hanya akan mensimulasikan permintaan DELETE dan akan mengembalikan produk yang dihapus dengan properti isDeleted dan deletedOn.
 
-Dibuat dengan oleh Herza Fellani R
+---
+
+Dibuat oleh Herza Fellani R
