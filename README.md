@@ -45,13 +45,15 @@ src/
 Ikuti langkah-langkah berikut untuk menjalankan proyek di mesin lokal Anda:
 
 1. **Clone repositori**:
+
    ```bash
-   git clone [url-repositori]
+   git clone https://github.com/herzfr/cpm-product
    cd cpm-product
    ```
 
 2. **Instal dependensi**:
    Pastikan Anda sudah menginstal [Node.js](https://nodejs.org/). Jalankan perintah berikut:
+
    ```bash
    npm install
    ```
@@ -60,9 +62,11 @@ Ikuti langkah-langkah berikut untuk menjalankan proyek di mesin lokal Anda:
    Pastikan file `.env.development` sudah terkonfigurasi dengan benar (terutama untuk `VITE_API_URL`).
 
 4. **Jalankan aplikasi (Development)**:
+
    ```bash
    npm run dev
    ```
+
    Aplikasi akan berjalan di `http://localhost:5173`.
 
 5. **Build untuk Produksi**:
@@ -79,4 +83,5 @@ Ikuti langkah-langkah berikut untuk menjalankan proyek di mesin lokal Anda:
 - **Testing**: Vitest + React Testing Library. Jalankan tes dengan `npm test`.
 
 ---
-Dibuat dengan ❤️ oleh [Nama/Tim Anda]
+
+Dibuat dengan oleh Herza Fellani R

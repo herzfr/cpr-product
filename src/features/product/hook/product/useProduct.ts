@@ -227,8 +227,15 @@ export const useProduct = () => {
           toast.success('Delete Success', 'Your product has been deleted');
           productStore.dispatch({ type: 'RESET_FILTER' });
         },
-        onError: (err) => {
-          console.log(err);
+        onError: (err: Error) => {
+          const message = err?.message || 'Failed to delete product';
+          toast.error('Failed Delete', message);
+          productStore.dispatch({ type: 'RESET_FILTER' });
+          productStore.dispatch({
+            type: 'SET_WAITING',
+            payload: false,
+          });
+          productStore.dispatch({ type: 'CLOSE_DIALOG' });
         },
       },
     );
