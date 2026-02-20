@@ -17,6 +17,7 @@ export function DataTable<TData>({
   placeholder,
   loading,
   error,
+  isPaginationShow,
   onFilterChange,
   onRowClick,
   onActionToolbar,
@@ -69,7 +70,7 @@ export function DataTable<TData>({
         onFilterChange={onFilterChange}
         onActionToolbar={onActionToolbar}
       />
-      {loading ? (
+      {loading && isPaginationShow ? (
         <LoadingFallback />
       ) : (
         <>
@@ -87,14 +88,16 @@ export function DataTable<TData>({
                 onFilterChange={onFilterChange}
                 onRowActionChange={onRowActionChange}
               />
-              <Pagination
-                table={table}
-                total={total}
-                loading={loading}
-                filter={filter}
-                paginationState={pagination}
-                onFilterChange={onFilterChange}
-              />
+              {isPaginationShow && (
+                <Pagination
+                  table={table}
+                  total={total}
+                  loading={loading}
+                  filter={filter}
+                  paginationState={pagination}
+                  onFilterChange={onFilterChange}
+                />
+              )}
             </div>
           )}
         </>

@@ -15,6 +15,8 @@ export default function CatalogPage() {
     productList,
     categoryList,
     columns,
+    triggerRef,
+    displayMode,
     setFilter,
     setProduct,
     setActionRow,
@@ -43,7 +45,17 @@ export default function CatalogPage() {
         ...((categoryList.categories?.map((item) => ({
           value: item.slug,
           label: item.name,
-        })) as SimpleSelectOption[]) ?? []),
+         })) as SimpleSelectOption[]) ?? []),
+      ],
+    },
+    {
+      id: 'display-mode',
+      type: 'select',
+      label: 'Display',
+      selected: displayMode,
+      items: [
+        { value: 'pagination', label: 'Pagination' },
+        { value: 'infinite', label: 'Infinite Scroll' },
       ],
     },
   ] as ToolbarActions;
@@ -92,6 +104,7 @@ export default function CatalogPage() {
           total={productList.meta.total}
           loading={productList.isFetching}
           error={productList.error}
+          isPaginationShow={displayMode === 'pagination'}
           onFilterChange={setFilter}
           onRowClick={setProduct}
           onRowActionChange={setActionRow}
@@ -99,6 +112,14 @@ export default function CatalogPage() {
           onRetry={retry}
         />
       </div>
+      {displayMode === 'infinite' && (
+        <div ref={triggerRef} className="py-8 flex justify-center">
+          {productList.isFetching && <p className="text-ait-neutral-500">Loading more products...</p>}
+          {!productList.isFetching && productList.products.length >= productList.meta.total && (
+            <p className="text-ait-neutral-500">All products loaded</p>
+          )}
+        </div>
+      )}
 
       {productStore.dialog.type === 'custom' && (
         <DialogCustom
