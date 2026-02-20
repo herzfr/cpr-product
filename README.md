@@ -81,6 +81,7 @@ Ikuti langkah-langkah berikut untuk menjalankan proyek di mesin lokal Anda:
 - **Icons**: Lucide React.
 - **Form Handling**: React Hook Form + Zod (untuk validasi).
 - **Testing**: Vitest + React Testing Library. Jalankan tes dengan `npm test`.
+- **Backend**: (https://dummyjson.com/).
 
 ---
 
