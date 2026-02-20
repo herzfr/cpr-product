@@ -85,4 +85,14 @@ Ikuti langkah-langkah berikut untuk menjalankan proyek di mesin lokal Anda:
 
 ---
 
+## ❗Perihatian Konten
+
+CRUD Simulasi:
+- Menambahkan produk baru tidak akan benar-benar menambahkannya ke server.
+Ini hanya akan mensimulasikan permintaan POST dan akan mengembalikan produk yang baru dibuat dengan ID baru.
+- Memperbarui produk tidak akan benar-benar memperbaruinya di server.
+Ini hanya akan mensimulasikan permintaan PUT/PATCH dan akan mengembalikan produk yang telah diperbarui dengan data yang sudah dimodifikasi.
+- Menghapus produk tidak akan benar-benar menghapusnya di server.
+Ini hanya akan mensimulasikan permintaan DELETE dan akan mengembalikan produk yang dihapus dengan properti isDeleted dan deletedOn.
+
 Dibuat dengan oleh Herza Fellani R
