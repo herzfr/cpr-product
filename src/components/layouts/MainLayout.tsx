@@ -22,7 +22,9 @@ export function MainLayout({ children }: MainLayoutProps) {
                 ☰
               </Button>
             )}
-            <h1 className="text-xl font-semibold">AIT React Scaffold</h1>
+            <h1 className="text-xl font-semibold">
+              Capston Project Requirement - Product Catalog
+            </h1>
             <div />
           </div>
         </header>

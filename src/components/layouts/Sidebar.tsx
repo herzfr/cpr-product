@@ -65,7 +65,7 @@ export function Sidebar() {
         {!sidebarCollapsed && (
           <div className="min-w-0">
             <h2 className="truncate text-base font-semibold text-neutral-900">
-              AIT Scaffold
+              CPR - Product Catalog
             </h2>
           </div>
         )}
@@ -232,6 +232,12 @@ export function Sidebar() {
           })}
         </ul>
       </nav>
+
+      {sidebarCollapsed ? (
+        <img className="py-3 px-2" src="/cpr-logo.png" alt="cpm" />
+      ) : (
+        <img className="py-3 px-2" src="/cpr.png" alt="cpm" />
+      )}
     </aside>
   );
 }
