@@ -1,4 +1,4 @@
-# CPM Product - Management System
+# CPR Product - Management System
 
 Proyek ini adalah aplikasi manajemen produk yang dibangun menggunakan **React**, **Vite**, dan **TypeScript**. Aplikasi ini dirancang untuk mengelola katalog produk, detail produk, serta melakukan operasi CRUD (Create, Read, Update, Delete) dengan performa tinggi dan desain UI yang premium.
 
