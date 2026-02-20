@@ -85,6 +85,11 @@ Ikuti langkah-langkah berikut untuk menjalankan proyek di mesin lokal Anda:
 
 ---
 
+## View Result
+- Hasil dapat dilihat melalui [Vercel](https://cpr-product.vercel.app/).
+
+---
+
 ## ❗Perihatian Konten
 
 CRUD Simulasi:
