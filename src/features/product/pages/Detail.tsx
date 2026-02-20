@@ -30,7 +30,7 @@ export default function Detail() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="bg-ait-neutral-50 rounded-lg flex flex-row justify-between  items-center">
+      <div className="bg-ait-neutral-50 rounded-lg flex flex-col gap-2 sm:flex-row justify-between items-center">
         <h3 className="text-ait-h3-semibold text-ait-neutral-900">
           Detail Product
         </h3>
@@ -44,13 +44,13 @@ export default function Detail() {
       </div>
 
       <div className="bg-white rounded-xl border border-ait-neutral-200 shadow-sm overflow-hidden">
-        <div className="flex">
-          <div className="flex flex-5 flex-row p-2 gap-2">
+        <div className="flex flex-col sm:flex-row ">
+          <div className="flex flex-5 flex-row p-2 gap-2 relative">
             <div className="flex-8">
               <img src={displayImg} alt="" />
             </div>
 
-            <div className="flex-2 gap-1 flex flex-col">
+            <div className="flex-2 gap-1 flex flex-col absolute w-15">
               {product.images.map((img, index) => {
                 const isActive = img === displayImg;
                 return (

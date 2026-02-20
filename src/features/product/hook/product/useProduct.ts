@@ -7,7 +7,7 @@ import {
 } from './useFetchProduct';
 import type { Product } from '../../types';
 import { columnsProductTable } from '@/constants/table';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Filter } from '@/types/general';
 import type {
   RowActionEvent,
@@ -69,32 +69,34 @@ export const useProduct = () => {
     isFetching: infiniteList.isFetching,
   });
 
-  if (!initialized.current) {
-    let limit = Number(searchParams.get('limit')) || 10;
-    let skip = Number(searchParams.get('skip')) || 0;
-    let search = searchParams.get('q') || '';
-    let mode = searchParams.get('mode') as 'pagination' | 'infinite' | null;
-    let order = searchParams.get('order') as 'asc' | 'desc' | undefined;
-    let rawSortBy = searchParams.get('sortBy');
-    let sortBy: keyof Product | undefined;
-    if (rawSortBy && isKeyOfProduct(rawSortBy)) {
-      sortBy = rawSortBy;
-    }
-
-    if (mode) {
-      productStore.dispatch({ type: 'SET_DISPLAY_MODE', payload: mode });
-
-      if (mode === 'infinite') {
-        skip = 0;
+  useEffect(() => {
+    if (!initialized.current) {
+      let limit = Number(searchParams.get('limit')) || 10;
+      let skip = Number(searchParams.get('skip')) || 0;
+      let search = searchParams.get('q') || '';
+      let mode = searchParams.get('mode') as 'pagination' | 'infinite' | null;
+      let order = searchParams.get('order') as 'asc' | 'desc' | undefined;
+      let rawSortBy = searchParams.get('sortBy');
+      let sortBy: keyof Product | undefined;
+      if (rawSortBy && isKeyOfProduct(rawSortBy)) {
+        sortBy = rawSortBy;
       }
-    }
 
-    productStore.dispatch({
-      type: 'SET_FILTER',
-      payload: { limit, skip, search, order, sortBy },
-    });
-    initialized.current = true;
-  }
+      if (mode) {
+        productStore.dispatch({ type: 'SET_DISPLAY_MODE', payload: mode });
+
+        if (mode === 'infinite') {
+          skip = 0;
+        }
+      }
+
+      productStore.dispatch({
+        type: 'SET_FILTER',
+        payload: { limit, skip, search, order, sortBy },
+      });
+      initialized.current = true;
+    }
+  }, [searchParams, productStore]);
 
   const syncUrl = (
     filter: typeof productStore.filter,
